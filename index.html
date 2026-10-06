@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <title>Chad Forest Monitoring System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a365d 0%, #2d5a27 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+        }
+
+        .header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 30px;
+        background: linear-gradient(135deg, #1a365d, #2d5a27);
+        color: white;
+        padding: 20px 40px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            margin-left: 50px;
+        }
+
+        .header .subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-left: 50px;
+        }
+
+        .user-info {
+            text-align: right;
+            font-size: 0.9em;
+            margin-left: 550px;
+        }
+
+        .screen {
+            display: none;
+            min-height: calc(100vh - 120px);
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Landing Page */
+        .landing-page {
+            text-align: center;
+            padding: 100px 40px;
+        }
+
+        .landing-options {
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            margin-top: 80px;
+        }
+
+        .option-card {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: 3px solid transparent;
+            min-width: 350px;
+        }
+
+        .option-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            border-color: #2d5a27;
+        }
+
+        .option-card .icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+            color: #2d5a27;
+        }
+
+        .option-card h2 {
+            color: #1a365d;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .option-card p {
+            color: #666;
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        /* Authentication */
+        .auth-screen {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 120px 40px;
+        }
+
+        .auth-form {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 50px;
+            margin-top: 50px;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: bold;
+            color: #1a365d;
+            font-size: 1.1em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2d5a27;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2d5a27, #1a365d);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(45, 90, 39, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 90, 39, 0.4);
+        }
+
+        .btn-large {
+            padding: 20px 50px;
+            font-size: 18px;
+        }
+
+        .btn-secondary {
+            background: #e8f5e8;
+            color: #1a365d;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Manager App */
+        .manager-app {
+            display: grid;
+            grid-template-columns: 350px 1fr 300px;
+            height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            padding: 30px;
+            overflow-y: auto;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .dashboard-sidebar {
+            background: #f8f9fa;
+            padding: 30px;
+            overflow-y: auto;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        .filter-section {
+            margin-bottom: 35px;
+        }
+
+        .filter-section h3 {
+            color: #1a365d;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+
+        .checkbox-group label:hover {
+            background-color: #e8f5e8;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .map-area {
+            background: #f0f4f0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 500px; /* or whatever fits your layout */
+            background: none !important; /* removes placeholder */
+            overflow: hidden;
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-width: 200px;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .map-btn {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .map-btn:hover {
+            background: #f0f4f0;
+        }
+
+        .incident-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            pointer-events: all;
+            cursor: pointer;
+        }
+
+        .marker.new { background: #ff4444; }
+        .marker.review { background: #ff9800; }
+        .marker.resolved { background: #4caf50; }
+
+        .marker:hover {
+            transform: scale(1.3);
+        }
+
+        .export-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .export-section h3 {
+            color: #1a365d;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .export-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .export-option:hover {
+            border-color: #2d5a27;
+            background: #f0f4f0;
+        }
+
+        .export-option input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .case-stats {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .case-stats h3 {
+            color: #1a365d;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-new { background: #ff4444; }
+        .status-review { background: #ff9800; }
+        .status-resolved { background: #4caf50; }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+}
+
+        /* Guide Choice */
+        .guide-choice {
+            text-align: center;
+            padding: 150px 40px;
+        }
+
+        .choice-buttons {
+            margin-top: 60px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        /* Tour Guide */
+        .tour-guide {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .tour-step {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 35px;
+            margin-bottom: 30px;
+            border-left: 6px solid #2d5a27;
+        }
+
+        .tour-step h3 {
+            color: #1a365d;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .tour-step p {
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+
+        /* Preview Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .preview-content {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .tour-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 28px;
+            margin-bottom: 38px;
+        }
+        .tour-step-text {
+            flex: 2;
+        }
+        .tour-step-img {
+            flex: 1;
+            max-width: 230px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(30,30,30,0.08);
+            margin-top: 8px;
+            object-fit: cover;
+            height: auto;
+        }
+        @media (max-width: 700px) {
+            .tour-step {
+                flex-direction: column;
+                gap: 0;
+            }
+            .tour-step-img {
+                max-width: 100%;
+                margin: 12px 0 0 0;
+            }
+        }
+
+        .dropdown {
+    position: relative;
+    display: block;
+    margin-bottom: 20px;
+}
+        .dropbtn {
+            background-color: #e2e8f0;
+            color: #1a365d;
+            padding: 10px 18px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+            transition: background 0.2s;
+        }
+        .dropbtn:hover, .dropbtn:focus {
+            background-color: #cbd5e1;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 110%;
+            background-color: #fff;
+            min-width: 240px;
+            box-shadow: 0 2px 12px rgba(30,30,30,0.08);
+            border-radius: 8px;
+            padding: 15px 18px;
+            z-index: 1000;
+        }
+        .dropdown-content label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        @media (max-width: 600px) {
+            .dropdown-content {
+                min-width: 95vw;
+            }
+        }
+
+        #leafletMap {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+        <button class="back-btn" id="backBtn" onclick="showScreen('landing')" style="display: none;">← Back to Home</button>
+        <div>
+            <h1>Chad Forest Monitoring Portal</h1>
+            <div class="subtitle">Ministry of Environment - Forest Protection Division</div>
+        </div>
+        <div class="user-info" id="userInfo" style="display: none;">
+            <div>👤 <span id="userName">Amina Ndolo</span></div>
+            <div>Regional Geospatial Analyst</div>
+        </div>
+    </div>
+
+
+        <!-- Landing Page -->
+        <div class="screen active" id="landing">
+            <div class="landing-page">
+                <h2 style="color: #1a365d; margin-bottom: 30px; font-size: 2.8em;">Forest Monitoring System</h2>
+                <p style="color: #666; font-size: 1.4em; margin-bottom: 60px;">Choose your access point to monitor Chad's forest resources</p>
+                
+                <div class="landing-options">
+                    <div class="option-card" onclick="showScreen('auth')">
+                        <div class="icon">🗺️</div>
+                        <h2>Monitoring and Anaysis Dashboard</h2>
+                        <p>Access the comprehensive monitoring dashboard with interactive maps, advanced filters, incident tracking capabilities and report generation</p>
+                    </div>
+                    
+                    <div class="option-card" onclick="showScreen('quickForm')">
+                        <div class="icon">📝</div>
+                        <h2>Incident Submission Form</h2>
+                        <p>Submit forest incident reports directly without accessing the full management system</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication -->
+        <div class="screen" id="auth">
+            <button class="back-btn" onclick="showScreen('landing')" style="position: absolute; top: 30px; left: 20px;">← Back</button>
+            <div class="auth-screen">
+                <h2 style="color: #1a365d; margin-bottom: 20px; font-size: 2.2em;">Authentication Required</h2>
+                <p style="color: #666; margin-bottom: 40px; font-size: 1.2em;">Please enter your institutional email to access the Dashboard</p>
+                
+                <div class="auth-form">
+                    <div class="form-group">
+                        <label for="email">🏛️ Institutional Email Address</label>
+                        <input type="email" id="email" placeholder="amina.ndolo@environment.gov.td" required>
+                    </div>
+                    <button class="btn btn-large" onclick="authenticateUser()">Access Dashboard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Guide Choice -->
+        <div class="screen" id="guideChoice">
+            <button class="back-btn" onclick="showScreen('auth')" style="position: absolute; top: 30px; left: 40px;">← Back</button>
+            <div class="guide-choice">
+                <h2 style="color: #1a365d; margin-bottom: 30px; font-size: 2.2em;">Welcome to Forest Monitor</h2>
+                <p style="color: #666; font-size: 1.3em; margin-bottom: 20px;">Would you like to take the User Guide?</p>
+                <p style="color: #888; font-size: 1.1em;">The guide will walk you through the main features of the dashboard including filters, export options, and dashboard analytics.</p>
+                
+                <div class="choice-buttons">
+                    <button class="btn btn-large" onclick="showScreen('tourGuide')">📚 Yes, show me the guide</button>
+                    <button class="btn btn-secondary btn-large" onclick="showScreen('managerApp')">🚀 Skip to Dashboard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tour Guide -->
+    <div class="screen" id="tourGuide">
+        <button class="back-btn" onclick="showScreen('guideChoice')" style="position: absolute; top: 30px; left: 40px;">← Back</button>
+        <div class="tour-guide">
+            <h2 style="color: #1a365d; margin-bottom: 50px; text-align: center; font-size: 2.2em;">Dashboard Tour Guide</h2>
+            
+            <div class="tour-step">
+                <div class="tour-step-text">
+                    <h3>🗺️ Interactive Basemap Navigation</h3>
+                    <p>The main map displays Chad's forest coverage with real-time incident markers. You can zoom, pan, and click on incidents for detailed information. The map includes forest concession boundaries, protected areas, and administrative regions.</p>
+                </div>
+                <img src="basemap.jpg" alt="Interactive Basemap Example" class="tour-step-img" />
+            </div>
+            
+            <div class="tour-step">
+                <div class="tour-step-text">
+                    <h3>🌍 Advanced Regional Filters</h3>
+                    <p>Filter incidents by Chad's administrative regions. Multiple selections allow for comparative analysis.</p>
+                </div>
+                <img src="filters.jpg" alt="Regional Filters Example" class="tour-step-img" />
+            </div>
+            
+            <div class="tour-step">
+                <div class="tour-step-text">
+                    <h3>🏢 Concession & Activity Filters</h3>
+                    <p>View incidents by legal and illegal concession areas, . Track compliance and identify hotspots of illegal activities.</p>
+                </div>
+                <img src="concession.jpg" alt="Concession and Activity Filters Example" class="tour-step-img" />
+            </div>
+            
+            <div class="tour-step">
+                <div class="tour-step-text">
+                    <h3>⚠️ Comprehensive Event Type Filters</h3>
+                    <p>Filter by incident types: Logging, Bushfires and more. Each event type has status tracking (New, Under Review, Resolved).</p>
+                </div>
+                <img src="event_filters.png" alt="Event Type Filters Example" class="tour-step-img" />
+            </div>
+            
+            <div class="tour-step">
+                <div class="tour-step-text">
+                    <h3>📊 Export & Preview System</h3>
+                    <p>Export filtered data in multiple formats (PDF, HTML, CSV). Preview reports before downloading, select specific data fields, and generate formatted reports for UN meetings and presentations.</p>
+                </div>
+                <img src="export.png" alt="Export and Preview Example" class="tour-step-img" />
+            </div>
+            
+            <div class="tour-step">
+                <div class="tour-step-text">
+                    <h3>📈 Dashboard Analytics</h3>
+                    <p>View real-time statistics of new cases, cases under review, and resolved incidents. Track trends, generate summary reports, and monitor progress across all regions.</p>
+                </div>
+                <img src="dashboard.jpg" alt="Dashboard Analytics Example" class="tour-step-img" />
+            </div>
+            
+            <div style="text-align: center; margin-top: 50px;">
+                <button class="btn btn-large" onclick="showScreen('managerApp')">🚀 Start Using Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- Manager App -->
+        <div class="screen" id="managerApp">
+            <div class="manager-app">
+                <!-- Left Sidebar - Filters -->
+                <div class="sidebar">
+                    <h2 style="color: #1a365d; margin-bottom: 30px; display: flex; align-items: center; gap: 10px;">
+                        🎛️ Filters & Controls
+                    </h2>
+                    
+                    <div class="filter-section">
+                        <h3>🌍 Regional Filters</h3>
+                        <div class="dropdown">
+                            <button onclick="toggleDropdown('regionDropdown')" class="dropbtn">Select Regions ⏷</button>
+                            <div id="regionDropdown" class="dropdown-content">
+                                <label><input type="checkbox" onchange="updateMap()"> N'Djamena</label>
+                                <label><input type="checkbox" onchange="updateMap()"> Chari-Baguirmi</label>
+                                <label><input type="checkbox" onchange="updateMap()"> Mayo-Kebbi Est</label>
+                                <label><input type="checkbox" onchange="updateMap()"> Mayo-Kebbi Ouest</label>
+                                <label><input type="checkbox" onchange="updateMap()"> Logone Oriental</label>
+                                <label><input type="checkbox" onchange="updateMap()"> Logone Occidental</label>
+                                <label><input type="checkbox" onchange="updateMap()"> Tandjilé</label>
+                                <label><input type="checkbox" onchange="updateMap()"> Moyen-Chari</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <h3>🏢 Concession Filters</h3>
+                        <div class="dropdown">
+                            <button onclick="toggleDropdown('concessionDropdown')" class="dropbtn">Select Concessions ⏷</button>
+                            <div id="concessionDropdown" class="dropdown-content">
+                                <label><input type="checkbox" onchange="updateMap()"> Legal Concessions</label>
+                                <label><input type="checkbox" onchange="updateMap()"> Illegal Concessions</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <h3>⚠️ Event Type Filters</h3>
+                        <div class="dropdown">
+                            <button onclick="toggleDropdown('eventDropdown')" class="dropbtn">Select Event Types ⏷</button>
+                            <div id="eventDropdown" class="dropdown-content">
+                                <label><input type="checkbox" onchange="updateMap()"> 🌲 Logging</label>
+                                <label><input type="checkbox" onchange="updateMap()"> 🔥 Bushfires</label>
+                                <label><input type="checkbox" onchange="updateMap()"> 🏗️ Deforestation</label>
+                                <label><input type="checkbox" onchange="updateMap()"> 🏠 Land Encroachment</label>
+                                <label><input type="checkbox" onchange="updateMap()"> ⛏️ Mining</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <h3>📅 Report Status</h3>
+                        <div class="dropdown">
+                            <button onclick="toggleDropdown('statusDropdown')" class="dropbtn">Select Status ⏷</button>
+                            <div id="statusDropdown" class="dropdown-content">
+                                <label><input type="checkbox" onchange="updateMap()"> <span class="status-dot status-new"></span> New Cases</label>
+                                <label><input type="checkbox" onchange="updateMap()"> <span class="status-dot status-review"></span> Under Review</label>
+                                <label><input type="checkbox" onchange="updateMap()"> <span class="status-dot status-resolved"></span> Resolved</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" style="width: 100%; margin-top: 30px;" onclick="clearAllFilters()">
+                        🔄 Clear All Filters
+                    </button>
+                </div>
+                
+                <!-- Center - Map Area -->
+                <div class="map-area">
+                    <div class="map-container" id="mapContainer">
+                            <div id="leafletMap" style="width: 100%; height: 100%; position: absolute; inset: 0; z-index: 0;"></div>
+                        <!-- Map Controls -->
+                        <div class="map-controls">
+                            <button class="map-btn" onclick="zoomIn()" title="Zoom In">+</button>
+                            <button class="map-btn" onclick="zoomOut()" title="Zoom Out">-</button>
+                            <button class="map-btn" onclick="toggleLayers()" title="Toggle Layers">🗂️</button>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="map-overlay">
+                            <strong style="color: #1a365d;">📍 Legend</strong>
+                            <div style="margin-top: 15px; font-size: 14px;">
+                                <div style="margin: 8px 0;"><span class="marker new" style="position: relative; display: inline-block; margin-right: 8px;"></span>New Cases (23)</div>
+                                <div style="margin: 8px 0;"><span class="marker review" style="position: relative; display: inline-block; margin-right: 8px;"></span>Under Review (18)</div>
+                                <div style="margin: 8px 0;"><span class="marker resolved" style="position: relative; display: inline-block; margin-right: 8px;"></span>Resolved (45)</div>
+                            </div>
+                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
+                                Scale: 1:5,000,000<br>
+                                Data loaded: 86 features<br>
+                                Last updated: Today 14:30
+                            </div>
+                        </div>
+
+                        <!-- Incident Markers -->
+                        <div class="incident-markers">
+                            <div class="marker new" style="top: 35%; left: 45%;" onclick="showIncidentDetail('Logging', 'Mayo-Kebbi Est')"></div>
+                            <div class="marker review" style="top: 28%; left: 52%;" onclick="showIncidentDetail('Bushfire', 'Chari-Baguirmi')"></div>
+                            <div class="marker resolved" style="top: 45%; left: 38%;" onclick="showIncidentDetail('Deforestation', 'Logone Occidental')"></div>
+                            <div class="marker new" style="top: 55%; left: 48%;" onclick="showIncidentDetail('Wildlife Poaching', 'Moyen-Chari')"></div>
+                            <div class="marker review" style="top: 40%; left: 35%;" onclick="showIncidentDetail('Land Encroachment', 'Tandjilé')"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Sidebar - Dashboard & Export -->
+                <div class="dashboard-sidebar">
+                    <!-- Case Statistics as Pie Chart -->
+                    <div class="case-stats">
+                        <h3>📊 Case Statistics</h3>
+                        <canvas id="casePieChart" width="190" height="200"></canvas>
+                        <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+                            <div><span class="status-dot status-new"></span> New Cases</div>
+                            <div><span class="status-dot status-review"></span> Under Review</div>
+                            <div><span class="status-dot status-resolved"></span> Resolved</div>
+                        </div>
+                        <div style="margin-top: 16px; font-weight: bold; color: #1a365d;">Total Cases: 86</div>
+                    </div>
+
+
+                    <!-- Export Section -->
+                    <div class="export-section">
+                        <h3>📤 Export Options</h3>
+                        <div class="export-options">
+                            <div class="export-option">
+                                <input type="checkbox"    >
+                                <div>
+                                    <strong>📊 Filtered Records</strong>
+                                    <div style="font-size: 12px; color: #666; margin-top: 2px;">Current filtered data</div>
+                                </div>
+                            </div>
+                            <div class="export-option">
+                                <input type="checkbox">
+                                <div>
+                                    <strong>🗺️ Map View</strong>
+                                    <div style="font-size: 12px; color: #666; margin-top: 2px;">Current map viewport</div>
+                                </div>
+                            </div>
+                            <div class="export-option">
+                                <input type="checkbox">
+                                <div>
+                                    <strong>📈 Charts & Stats</strong>
+                                    <div style="font-size: 12px; color: #666; margin-top: 2px;">Statistical summaries</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #1a365d;">Output Format:</label>
+                            <select id="exportFormat" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                                <option value="pdf">📄 PDF Report</option>
+                                <option value="html">🌐 HTML Report</option>
+                                <option value="csv">📊 CSV Data</option>
+                                <option value="xlsx">📋 Excel Spreadsheet</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button class="btn" style="flex: 1; padding: 12px;" onclick="previewReport()">👁️ Preview</button>
+                            <button class="btn" style="flex: 1; padding: 12px;" onclick="downloadReport()">⬇️ Download</button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="case-stats">
+                        <h3>🕒 Recent Activity</h3>
+                        <div style="max-height: 200px; overflow-y: auto;">
+                            <div class="stat-item">
+                                <div>
+                                    <strong style="font-size: 13px;">Logging</strong>
+                                    <div style="font-size: 11px; color: #666;">Mayo-Kebbi Est • 2 hours ago</div>
+                                </div>
+                                <span class="status-dot status-new"></span>
+                            </div>
+                            <div class="stat-item">
+                                <div>
+                                    <strong style="font-size: 13px;">Bushfire Resolved</strong>
+                                    <div style="font-size: 11px; color: #666;">Logone Oriental • 1 day ago</div>
+                                </div>
+                                <span class="status-dot status-resolved"></span>
+                            </div>
+                            <div class="stat-item">
+                                <div>
+                                    <strong style="font-size: 13px;">Deforestation</strong>
+                                    <div style="font-size: 11px; color: #666;">N'Djamena • 2 days ago</div>
+                                </div>
+                                <span class="status-dot status-review"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="export-section">
+                        <h3>⚡ Quick Actions</h3>
+                        <button class="btn" style="width: 100%; margin-bottom: 10px;" onclick="generateRMSReport()">
+                            📋 Generate RMS Report
+                        </button>
+                        <button class="btn btn-secondary" style="width: 100%; margin-bottom: 10px;" onclick="showScreen('landing')">
+                            🏠 Back to Home
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Form -->
+        <div class="screen" id="quickForm">
+            <button class="back-btn" onclick="showScreen('landing')" style="position: absolute; top: 30px; left: 40px;">← Back to Home</button>
+            <div style="max-width: 700px; margin: 0 auto; padding: 60px 40px;">
+                <h2 style="color: #1a365d; margin-bottom: 30px; font-size: 2.2em;">Quick Incident Report</h2>
+                <p style="color: #666; margin-bottom: 40px; font-size: 1.1em;">Submit forest incident reports directly to the monitoring system</p>
+                
+                <form class="auth-form">
+                    <div class="form-group">
+                        <label>🌍 Region</label>
+                        <select style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px;">
+                            <option>Select Region</option>
+                            <option>N'Djamena</option>
+                            <option>Chari-Baguirmi</option>
+                            <option>Mayo-Kebbi Est</option>
+                            <option>Mayo-Kebbi Ouest</option>
+                            <option>Logone Oriental</option>
+                            <option>Logone Occidental</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>⚠️ Incident Type</label>
+                        <select style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px;">
+                            <option>Select Incident Type</option>
+                            <option>🌲 Logging</option>
+                            <option>🔥 Bushfire</option>
+                            <option>🏗️ Deforestation</option>
+                            <option>🦏 Wildlife Poaching</option>
+                            <option>🏠 Land Encroachment</option>
+                            <option>⛏️ Mining</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📍 GPS Coordinates</label>
+                        <input type="text" placeholder="12.1234, 15.5678" style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px;">
+                    </div>
+                    <div class="form-group">
+                        <label>🚨 Severity Level</label>
+                        <select style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px;">
+                            <option>Select Severity</option>
+                            <option>🟢 Low Priority</option>
+                            <option>🟡 Medium Priority</option>
+                            <option>🟠 High Priority</option>
+                            <option>🔴 Urgent</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📝 Description</label>
+                        <textarea rows="5" placeholder="Describe the incident in detail..." style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; resize: vertical;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-large" style="width: 100%;" onclick="submitQuickReport(event)">📤 Submit Report</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePreview()">&times;</span>
+            <h2 style="color: #1a365d; margin-bottom: 20px;">📋 Report Preview</h2>
+            <div class="preview-content" id="previewContent">
+                <h3>Chad Forest Monitoring Report</h3>
+                <p><strong>Generated:</strong> <span id="previewDate"></span></p>
+                <p><strong>Report Type:</strong> <span id="previewType"></span></p>
+                <p><strong>Filters Applied:</strong> All regions, All event types</p>
+                
+                <h4>Summary Statistics</h4>
+                <ul>
+                    <li>New Cases: 23</li>
+                    <li>Under Review: 18</li>
+                    <li>Resolved: 45</li>
+                    <li>Total Cases: 86</li>
+                </ul>
+                
+                <h4>Regional Breakdown</h4>
+                <ul>
+                    <li>N'Djamena: 15 cases</li>
+                    <li>Mayo-Kebbi Est: 12 cases</li>
+                    <li>Chari-Baguirmi: 11 cases</li>
+                    <li>Logone Oriental: 10 cases</li>
+                    <li>Other regions: 38 cases</li>
+                </ul>
+                
+                <h4>Incident Types</h4>
+                <ul>
+                    <li>Logging: 28 cases</li>
+                    <li>Bushfires: 21 cases</li>
+                    <li>Deforestation: 19 cases</li>
+                    <li>Wildlife Poaching: 12 cases</li>
+                    <li>Land Encroachment: 6 cases</li>
+                </ul>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="downloadReport()">⬇️ Download Report</button>
+                <button class="btn btn-secondary" onclick="closePreview()">❌ Close Preview</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 'landing';
+        let screenHistory = [];
+        let map;
+        let mapInitialized = false;
+
+        function showScreen(screenId) {
+            if (currentScreen !== 'landing') {
+                screenHistory.push(currentScreen);
+            }
+            
+            document.getElementById(currentScreen).classList.remove('active');
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+            
+            // Show user info when in manager app
+            const userInfo = document.getElementById('userInfo');
+            if (screenId === 'managerApp') {
+                userInfo.style.display = 'block';
+                // Initialize map only when manager app is shown
+                initializeMap();
+            } else if (screenId === 'landing') {
+                userInfo.style.display = 'none';
+            }
+        }
+
+        function initializeMap() {
+            // Only initialize once and when the manager app is visible
+            if (!mapInitialized && typeof L !== 'undefined') {
+                // Small delay to ensure the container is fully rendered
+                setTimeout(() => {
+                    try {
+                        map = L.map('leafletMap').setView([9.5, 18.5], 6);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '© OpenStreetMap contributors'
+                        }).addTo(map);
+                        
+                        // Force the map to recalculate its size
+                        map.invalidateSize();
+                        mapInitialized = true;
+                    } catch (error) {
+                        console.error('Error initializing map:', error);
+                        // Fallback alert if map fails to load
+                        setTimeout(() => {
+                            alert('Map is loading... Please wait a moment and try again.');
+                        }, 1000);
+                    }
+                }, 100);
+            } else if (map) {
+                // If map exists but container size changed, recalculate
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100);
+            } else if (typeof L === 'undefined') {
+                // Leaflet not loaded yet, try again in a moment
+                setTimeout(() => {
+                    initializeMap();
+                }, 200);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Wait for all scripts to load before initializing
+            let scriptsLoaded = 0;
+            const totalScripts = 2; // Chart.js and Leaflet
+            
+            function checkScriptsLoaded() {
+                scriptsLoaded++;
+                if (scriptsLoaded >= totalScripts) {
+                    initializeDashboard();
+                }
+            }
+            
+            // Check if Chart.js is loaded
+            if (typeof Chart !== 'undefined') {
+                checkScriptsLoaded();
+            } else {
+                // Wait for Chart.js to load
+                const checkChart = setInterval(() => {
+                    if (typeof Chart !== 'undefined') {
+                        clearInterval(checkChart);
+                        checkScriptsLoaded();
+                    }
+                }, 50);
+            }
+            
+            // Check if Leaflet is loaded
+            if (typeof L !== 'undefined') {
+                checkScriptsLoaded();
+            } else {
+                // Wait for Leaflet to load
+                const checkLeaflet = setInterval(() => {
+                    if (typeof L !== 'undefined') {
+                        clearInterval(checkLeaflet);
+                        checkScriptsLoaded();
+                    }
+                }, 50);
+            }
+        });
+
+        function initializeDashboard() {
+            // PIE CHART - Initialize once Chart.js is loaded
+            const data = {
+                labels: ["New Cases", "Under Review", "Resolved"],
+                datasets: [{
+                    data: [23, 18, 45],
+                    backgroundColor: [
+                        "#ff4444",    // New Cases
+                        "#ff9800",    // Under Review
+                        "#4caf50"     // Resolved
+                    ],
+                    borderWidth: 2,
+                    borderColor: "#fff"
+                }]
+            };
+
+            const ctx = document.getElementById('casePieChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: data,
+                options: {
+                    responsive: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function authenticateUser() {
+            const email = document.getElementById('email').value;
+            if (email && email.includes('@')) {
+                const userName = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                document.getElementById('userName').textContent = userName;
+                showScreen('guideChoice');
+            } else {
+                alert('⚠️ Please enter a valid institutional email address');
+            }
+        }
+
+        function updateMap() {
+            // Simulate map update based on filters
+            console.log('Map updated based on current filters');
+            // In a real application, this would update the map display
+        }
+
+        function clearAllFilters() {
+            const checkboxes = document.querySelectorAll('.sidebar input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateMap();
+        }
+
+        function zoomIn() {
+            if (map) {
+                map.zoomIn();
+            } else {
+                alert('🔍 Zooming in on map');
+            }
+        }
+
+        function zoomOut() {
+            if (map) {
+                map.zoomOut();
+            } else {
+                alert('🔍 Zooming out on map');
+            }
+        }
+
+        function toggleLayers() {
+            alert('🗂️ Layer controls opened');
+        }
+
+        function showIncidentDetail(type, location) {
+            alert(`📍 Incident Details\n\nType: ${type}\nLocation: ${location}\nStatus: Under Investigation\nReported: 2 days ago\nPriority: High\n\nClick to view full details and update status.`);
+        }
+
+        function previewReport() {
+            const format = document.getElementById('exportFormat').value;
+            const modal = document.getElementById('previewModal');
+            const previewDate = document.getElementById('previewDate');
+            const previewType = document.getElementById('previewType');
+            
+            previewDate.textContent = new Date().toLocaleString();
+            previewType.textContent = format.toUpperCase() + ' Format';
+            
+            modal.style.display = 'block';
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        function downloadReport() {
+            const format = document.getElementById('exportFormat').value;
+            closePreview();
+            
+            let message = '📁 Report Download Started\n\n';
+            switch(format) {
+                case 'pdf':
+                    message += '📄 PDF report with maps and charts\nOptimized for presentations';
+                    break;
+                case 'html':
+                    message += '🌐 Interactive HTML report\nIncludes embedded maps';
+                    break;
+                case 'csv':
+                    message += '📊 CSV data file\nReady for analysis in Excel';
+                    break;
+                case 'xlsx':
+                    message += '📋 Excel spreadsheet\nFormatted with charts and tables';
+                    break;
+            }
+            message += '\n\n✅ File will be saved to Downloads folder\n🕒 Estimated time: 30 seconds';
+            
+            alert(message);
+        }
+
+        function generateRMSReport() {
+            alert('📋 RMS Report Generation\n\nGenerating comprehensive report for UN meeting:\n\n✅ Regional incident summary\n✅ Trend analysis charts\n✅ Action recommendations\n✅ Maps for PowerPoint\n✅ Executive summary\n\nReport will be ready in 2 minutes.\nYou will be notified when complete.');
+        }
+
+        function submitQuickReport(event) {
+            event.preventDefault();
+            alert('✅ Incident Report Submitted Successfully!\n\nReport Details:\n• Report ID: FR-' + Math.floor(Math.random() * 10000) + '\n• Status: Under Review\n• Priority: High\n• Assigned to: Regional Coordinator\n\nYou will receive updates via the system.\nThank you for reporting this incident.');
+        }
+
+        function toggleDropdown(id) {
+    // Hide all dropdowns first
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    for (let i = 0; i < dropdowns.length; i++) {
+        if (dropdowns[i].id !== id) {
+            dropdowns[i].style.display = "none";
+        }
+    }
+    // Toggle the selected dropdown
+    var dropdown = document.getElementById(id);
+    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+}
+
+        // Optional: Close dropdowns when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropbtn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    dropdowns[i].style.display = "none";
+                }
+            }
+        }
+
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target === modal) {
+                closePreview();
+            }
+        }
+
+        // Simulate real-time updates
+        setInterval(() => {
+            // In a real application, this would fetch new data
+            console.log('Checking for updates...');
+        }, 30000);
+    </script>
+</body>
+</html>
