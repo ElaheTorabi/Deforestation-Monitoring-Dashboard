@@ -23,14 +23,22 @@ An interactive web prototype of a forest monitoring dashboard for Chad's Ministr
 3. Take the user guide or skip straight to the dashboard.
 4. Use the filters on the left and click markers on the map to explore the incidents.
 
-To run it locally, download `index.html` and open it in a browser with an internet connection.
+To run it locally, download the repository (keeping the `css` and `js` folders next to `index.html`) and open `index.html` in a browser with an internet connection.
 
 ## Built with
 
-- HTML, CSS and JavaScript (single file, no build step)
+- HTML, CSS and JavaScript (no build step)
 - [Leaflet](https://leafletjs.com/) for the interactive map
 - [Chart.js](https://www.chartjs.org/) for the statistics chart
 - Esri World Street Map and World Imagery basemaps
+
+## Project structure
+
+```
+index.html      Page layout and content
+css/style.css   Styles
+js/app.js       Sample data, map, filters, statistics and reports
+```
 
 ## Limitations
 
